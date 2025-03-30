@@ -49,7 +49,7 @@ class GDALImage:
                    tif_type = gdal.GDT_Float32,
                    start_row: int = None,
                    start_col: int = None,
-                   no_data_value: int = -9999) -> None:
+                   no_data_value: int = 0) -> None:
         driver = gdal.GetDriverByName('GTiff')
 
         tif_dir = os.path.split(tif_name)[0]
@@ -70,7 +70,7 @@ class GDALImage:
             dataset.SetGeoTransform(self.geo_trans)
         dataset.SetProjection(self.prj)
         band = dataset.GetRasterBand(1)
-        band.SetNoDataValue(-9999)
+        band.SetNoDataValue(no_data_value)
         band.WriteArray(tif_array)
         dataset.FlushCache()
 

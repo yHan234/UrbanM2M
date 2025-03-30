@@ -14,7 +14,7 @@ try:
 except:
     import gdal
 
-no_data_value = -9999
+NO_DATA_VALUE = 0
 
 
 def is_complete(region: np.ndarray, water: np.ndarray):
@@ -137,7 +137,7 @@ def read_rasters(raster_paths: dict) -> dict:
 
     raster_arrays = {}
     for ras_name, ras in raster_paths.items():
-        arr = GDALImage.read_single(ras, -9999)
+        arr = GDALImage.read_single(ras, NO_DATA_VALUE)
         raster_arrays[ras_name] = arr
         print(ras_name)
     return raster_arrays
@@ -149,7 +149,7 @@ def read_rasters(raster_paths: dict) -> dict:
 #         land_path = pj(region_dir, 'year', f'land_{year}.tif')
 #         if not os.path.exists(land_path):
 #             raise RuntimeError('failed to find urban extent map')
-#         year_arrs[year] = GDALImage.read_single(var_path, -9999)
+#         year_arrs[year] = GDALImage.read_single(var_path, NO_DATA_VALUE)
 #
 #
 #     var_arrs = {}
@@ -157,7 +157,7 @@ def read_rasters(raster_paths: dict) -> dict:
 #         var_path = pj(region_dir, rf'{var}.tif')
 #         if not os.path.exists(var_path):
 #             raise RuntimeError('failed to find spatial variable')
-#         var_arrs[var] = GDALImage.read_single(var_path, -9999)
+#         var_arrs[var] = GDALImage.read_single(var_path, NO_DATA_VALUE)
 
 
 
@@ -178,7 +178,7 @@ def get_ras_paths(year_range: range, region_dir: str, spa_vars: list) -> dict:
 
 # setting
 spa_vars = ['Dcity', 'DCounty', 'Dhigh', 'DPrimary', 'DSecondary', 'DTertiary', 'dem', 'gdp', 'pop', 'slope', 'water']
-region_dir = '../hzb'
+region_dir = '/root/autodl-tmp/hzb'
 img_saver = GDALImage(pj(region_dir, f'{spa_vars[0]}.tif'))
 # split training set
 year_range = range(2000, 2012)

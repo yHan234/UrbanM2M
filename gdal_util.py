@@ -56,7 +56,7 @@ class GDALImage:
                    tif_array: np.ndarray,
                    tif_name: str,
                    tif_type = gdal.GDT_Float32,
-                   no_data_value: int = -9999,
+                   no_data_value: int = 0,
                    start_row: int = None,
                    start_col: int = None):
         # if tif_type==gdal.GDT_Int16:

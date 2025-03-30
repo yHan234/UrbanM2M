@@ -33,8 +33,8 @@ class Trainer:
         self.fore_len = args.fore_len
         self.batch_size = args.batch_size
 
-        self.summary_train = sw('./mycms_log/train', self.args.model_name)
-        self.summary_val = sw('./mycms_log/val', self.args.model_name)
+        self.summary_train = sw('/root/tf-logs/train', self.args.model_name)
+        self.summary_val = sw('/root/tf-logs/val', self.args.model_name)
 
         self.model_dir = args.model_dir
         self.model_name = args.model_name
@@ -154,7 +154,7 @@ class Trainer:
 
     def save_checkpoint(self, checkpoint: dict, epoch_label: int) -> None:
         if not os.path.exists(self.model_dir):
-            os.mkdir(self.model_dir)
+            os.makedirs(self.model_dir)
 
         # if epoch_label%8==0:
         #     checkpoint_filename = f'{self.model_name}-e{epoch_label}.pth'
