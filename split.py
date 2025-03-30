@@ -170,7 +170,7 @@ def get_ras_paths(year_range: range, region_dir: str, spa_vars: list) -> dict:
     res['water'] = pj(region_dir, 'water.tif')
     # 
     for year in year_range:
-        land_year_name = f'{year}_hzb.tif'
+        land_year_name = f'land_{year}.tif'
         land_ras_name = pj(region_dir, 'year', land_year_name)
         res[year] = land_ras_name
     return res

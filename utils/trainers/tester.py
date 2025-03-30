@@ -12,7 +12,7 @@ from osgeo import gdal
 
 
 class Tester:
-    def __init__(self, model, args, dataset, template_arr, device, cal_loss):
+    def __init__(self, model, args, dataset, range_arr, device, cal_loss):
         self.test_loader = None
         self.model     = model
         self.args      = args
@@ -30,9 +30,9 @@ class Tester:
         self.edge_width = args.edge_width
 
         self.step_diff  = self.batch_size - self.block_step
-        self.template_arr = template_arr
-        self.region_x   = template_arr.shape[1]
-        self.region_y   = template_arr.shape[0]
+        self.range_arr = range_arr
+        self.region_x   = range_arr.shape[1]
+        self.region_y   = range_arr.shape[0]
 
         self.prob_arr    = np.zeros((self.fore_len + self.enc_len - 1, self.region_y, self.region_x))
         self.overlap_arr = np.zeros((self.fore_len + self.enc_len - 1, self.region_y, self.region_x))
@@ -59,9 +59,9 @@ class Tester:
     def post_process(self):
         np.seterr(divide='ignore', invalid='ignore')
         self.prob_arr /= self.overlap_arr
-        mask = (self.template_arr == -9999)
+        mask = (self.range_arr == 0)
         self.prob_arr[np.isnan(self.prob_arr)] = 0
-        self.prob_arr[:, mask] = -9999
+        self.prob_arr[:, mask] = 0
 
 
 

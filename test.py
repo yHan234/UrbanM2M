@@ -44,28 +44,28 @@ parser.add_argument('--height',     default=64,   type=int)
 parser.add_argument('--block_step', default=38,   type=int)
 parser.add_argument('--edge_width', default=4,   type=int)
 # data information
-parser.add_argument('--spa_vars',   default='town|county|slope|road0|road1|railsta|airport', type=str)
-parser.add_argument('--region',     default='gba',          type=str)
-parser.add_argument('--model_type', default='gba',       type=str)
-parser.add_argument('--data_root_dir', default='../data-gisa-gba',       type=str)
+parser.add_argument('--spa_vars',   default='Dcity|DCounty|Dhigh|DPrimary|DSecondary|DTertiary|dem|gdp|pop|slope|water', type=str)
+parser.add_argument('--region',     default='hzb',          type=str)
+parser.add_argument('--model_type', default='hzb',       type=str)
+parser.add_argument('--data_root_dir', default='/root/autodl-tmp/hzb',       type=str)
 parser.add_argument('--use_ce',     default='True',type=str, help='')
 parser.add_argument('--use_att',    default='True',type=str, help='')
 
-parser.add_argument('--log_file', default='./mylog/gba.csv', type=str)
-parser.add_argument('--model_path', default='./trained_models/gba-fs5-e23-p.pth', type=str) # model dir is required,
+parser.add_argument('--log_file', default='/root/autodl-tmp/test/gba.csv', type=str)
+parser.add_argument('--model_path', default='/root/autodl-tmp//trained_models/hzb/hzb-fs5-t03_30_15-e30.pth', type=str) # model dir is required,
 # training parameters
 
 parser.add_argument('--run_model',  default='True',  type=str)
 parser.add_argument('--numworkers',  default=0,  type=int)
-parser.add_argument('--batch_size', default=570,     type=int)
+parser.add_argument('--batch_size', default=100,     type=int)
 
 args = parser.parse_args()
 args = check_args(args)
 # 推理或读取已有图像
 saver = GDALImage(args.gt_tifs[0])
-gt_arrs = [GDALImage.read_single(tif, -9999) for tif in args.gt_tifs]
-water_arr = saver.read_single(args.water_tif, -9999)
-range_arr = saver.read_single(args.range_tif, -9999)
+gt_arrs = [GDALImage.read_single(tif, 0) for tif in args.gt_tifs]
+water_arr = saver.read_single(args.water_tif, 0)
+range_arr = saver.read_single(args.range_tif, 0)
 
 def migrate_model(model_weights):
     new_weights = OrderedDict()
@@ -92,7 +92,7 @@ if args.run_model:
                     enc_len=args.enc_len,
                     fore_len=args.fore_len,
                     use_ce=args.use_ce,
-                    use_att=args.use_att)
+                    use_attention=args.use_att)
     model.load_state_dict(new_weights)
     model.cuda()
     
@@ -101,14 +101,14 @@ if args.run_model:
                         args.spa_var_tifs,
                         1,
                         args.height)
-    tester = Tester(model, args, dataset, gt_arrs[0], device, True)
+    tester = Tester(model, args, dataset, range_arr, device, True)
     tester.loop()
     prob_arrs = tester.prob_arr[args.enc_len - 1:]
     for arr, tif_path in zip(prob_arrs, args.prob_tifs[args.enc_len - 1:]):
-        arr[range_arr!=1] = -9999
-        saver.save_block(arr, tif_path, gdal.GDT_Float32, no_data_value = -9999)
+        arr[range_arr!=1] = 0
+        saver.save_block(arr, tif_path, gdal.GDT_Float32, no_data_value = 0)
 else:
-    prob_arrs = [saver.read_single(tif_path, -9999) for tif_path in args.prob_tifs[args.enc_len - 1:]]
+    prob_arrs = [saver.read_single(tif_path, 0) for tif_path in args.prob_tifs[args.enc_len - 1:]]
 
 import time
 st = time.time()
@@ -118,5 +118,5 @@ sim_info  = generate_simulation(prob_arrs,
                     range_arr,
                     saver,
                     args.gn_tifs[args.enc_len - 1:])
-print((time.time()-st)/60)
+print("simulate time:", (time.time()-st)/60, "min")
 write_sim_info(args, sim_info)

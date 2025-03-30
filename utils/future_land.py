@@ -40,7 +40,7 @@ def calc_fom(gt: np.ndarray, gn: np.ndarray, prev: np.ndarray):
 
 def get_simulation_result(prev: np.ndarray, prob_map: np.ndarray, water: np.ndarray, land_demand: int) -> np.ndarray:
     sim = deepcopy(prev)
-    prob_map[(prev == 1) | (water == 1)] = -9999
+    prob_map[(prev == 1) | (water == 1)] = 0
     indices = np.unravel_index(np.argsort(-prob_map, axis=None), prob_map.shape)
     indices = np.column_stack(indices)[:land_demand]
 
@@ -65,7 +65,7 @@ def generate_simulation(prob_maps: list,
                         out_tifs: list) -> list:
     prev = gt_imgs[0] # 2010 gt
     st = gt_imgs[0]   # 2010 gt
-    prev[range_map != 1] = -9999
+    prev[range_map != 1] = 0
     sim_info = []
     tot_land_demand = 0
     prev_gt = gt_imgs[0]
@@ -73,14 +73,14 @@ def generate_simulation(prob_maps: list,
         year = out_tif.split('.')[-2].split('_')[-1]
 
         prob_map = set_random_arr(prob_map)
-        cur_gt[range_map != 1] = -9999
-        prob_map[range_map != 1] = -9999
+        cur_gt[range_map != 1] = 0
+        prob_map[range_map != 1] = 0
         land_demand = calc_land_demand(cur_gt, prev_gt)
         tot_land_demand += land_demand
         cur_sim = get_simulation_result(prev, prob_map, water_map, land_demand)
 
 
-        img_saver.save_block(cur_sim, out_tif, gdal.GDT_Int16, no_data_value=-9999)
+        img_saver.save_block(cur_sim, out_tif, gdal.GDT_Int16, no_data_value=0)
         print('save', out_tif)
         fom = calc_fom(cur_gt, cur_sim, st)
         # metrics = cal_landscape(deepcopy(cur_sim))
