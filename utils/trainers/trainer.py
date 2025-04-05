@@ -1,6 +1,5 @@
 from typing import List
 import os
-from matplotlib import pyplot as plt
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, random_split
@@ -92,6 +91,7 @@ class Trainer:
             loop_loss = self.train_loop(self.train_loader, epoch)
             self.eta -= self.args.eta_decay
             self.eta = max(self.eta, 0)
+            self.summary_train.add_scalar('loss', loop_loss, epoch)
             self.save_checkpoint({
                 'epoch': epoch,
                 'state_dict': self.model.state_dict(),
@@ -126,7 +126,8 @@ class Trainer:
     def val_loop(self, loader: DataLoader):
         tot_loss = 0
         self.model.eval()
-        with tqdm(total=len(loader.dataset)//self.args.batch_size, ncols=75) as pbar:
+        batch_count = len(loader.dataset)//self.args.batch_size
+        with tqdm(total=batch_count, ncols=75) as pbar:
             with torch.no_grad():
                 for rc, spa_vars, x in loader:
                     loss = self.model_forward(x, spa_vars, [])
@@ -135,6 +136,7 @@ class Trainer:
                         {'loss': loss.item(), 'avg loss': tot_loss / pbar.n})
                     tot_loss += float(loss.item())
         print('finish validation')
+        return float(tot_loss/batch_count)
 
     def model_forward(self, x0: torch.Tensor, spa_vars: torch.Tensor, mask: list = []):
         # torch.cuda.empty_cache()

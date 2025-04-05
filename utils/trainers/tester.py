@@ -1,5 +1,4 @@
 from typing import List
-from matplotlib import pyplot as plt
 from torch import nn
 from torch.utils.data import DataLoader
 

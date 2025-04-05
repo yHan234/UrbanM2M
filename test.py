@@ -8,7 +8,7 @@ from collections import OrderedDict
 from utils.data_loading import TrainDataset
 from utils.future_land import *
 from utils.trainers.tester import *
-from model.CCLSTM import CCLSTM
+from model.PredRNN import PredRNN
 
 def check_args(args):
 
@@ -48,11 +48,14 @@ parser.add_argument('--spa_vars',   default='Dcity|DCounty|Dhigh|DPrimary|DSecon
 parser.add_argument('--region',     default='hzb',          type=str)
 parser.add_argument('--model_type', default='hzb',       type=str)
 parser.add_argument('--data_root_dir', default='/root/autodl-tmp/hzb',       type=str)
+# model struct
+parser.add_argument('--nlayers',    default=2,     type=int, help='number of layers')
+parser.add_argument('--filter_size',default=5,     type=int, help='filter size')
 parser.add_argument('--use_ce',     default='True',type=str, help='')
 parser.add_argument('--use_att',    default='True',type=str, help='')
 
 parser.add_argument('--log_file', default='/root/autodl-tmp/test/gba.csv', type=str)
-parser.add_argument('--model_path', default='/root/autodl-tmp//trained_models/hzb/hzb-fs5-t03_30_15-e30.pth', type=str) # model dir is required,
+parser.add_argument('--model_path', default='/root/autodl-tmp/trained_models/hzb/hzb-fs5-t04_05_11-e10.pth', type=str) # model dir is required,
 # training parameters
 
 parser.add_argument('--run_model',  default='True',  type=str)
@@ -83,16 +86,16 @@ if args.run_model:
     
     model_weights = torch.load(args.model_path, map_location='cpu').state_dict()
     new_weights = migrate_model(model_weights)
-    model = CCLSTM(input_chans=args.band,
-                    output_chans=1,
-                    img_size=args.height,
-                    filter_size=5,
-                    num_layers=2,
-                    hidden_size=64,
-                    enc_len=args.enc_len,
-                    fore_len=args.fore_len,
-                    use_ce=args.use_ce,
-                    use_attention=args.use_att)
+    model = PredRNN(
+        in_channels=args.band,
+        num_layers=args.nlayers,
+        hidden_size=args.height,
+        filter_size=args.filter_size,
+        img_width=args.height,
+        device=device,
+        total_length=args.enc_len + args.fore_len,
+        input_length=args.enc_len,
+    )
     model.load_state_dict(new_weights)
     model.cuda()
     

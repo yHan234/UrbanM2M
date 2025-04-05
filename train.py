@@ -1,6 +1,6 @@
 import os, sys
 from config import *
-from model.CCLSTM import CCLSTM
+from model.PredRNN import PredRNN
 from utils.data_loading import TrainDataset
 from utils.trainers.trainer import Trainer
 import argparse
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr',         default=0.00005, type=float, help='learning rate')
     parser.add_argument('--eta_decay',  default=0.015,  type=float, help='teacher forcing prob increase through epochs')
     # sampling info
-    parser.add_argument('--sample_count',default=5000,  type=int, help='training samples from the total blocks')
+    parser.add_argument('--sample_count',default=0,  type=int, help='training samples from the total blocks')
     parser.add_argument('--val_prop',   default=0.25,   type=float, help='proportion of validation samples from the selected samples')
     # saving info
     parser.add_argument('--model_type', default='hzb',  type=str, help='model save dir')
@@ -50,16 +50,16 @@ if __name__ == '__main__':
     args = check_args(args)
     print(args.spa_vars)
 
-    model = CCLSTM(input_chans  = args.band,
-                    output_chans = 1,
-                    hidden_size  = args.height,
-                    filter_size  = args.filter_size,
-                    num_layers   = args.nlayers,
-                    img_size     = args.height,
-                    enc_len      = args.enc_len,
-                    fore_len     = args.fore_len,
-                    use_attention= args.use_att,
-                    use_ce       = args.use_ce)
+    model = PredRNN(
+        in_channels=args.band,
+        num_layers=args.nlayers,
+        hidden_size=args.height,
+        filter_size=args.filter_size,
+        img_width=args.height,
+        device=device,
+        total_length=args.enc_len + args.fore_len,
+        input_length=args.enc_len,
+    )
     model = model.cuda()
     dataset = TrainDataset(args.block_dir,
                         args.input_tifs,
