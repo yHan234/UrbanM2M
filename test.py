@@ -49,7 +49,7 @@ parser.add_argument('--region',     default='hzb',          type=str)
 parser.add_argument('--model_type', default='hzb',       type=str)
 parser.add_argument('--data_root_dir', default='/root/autodl-tmp/hzb',       type=str)
 # model struct
-parser.add_argument('--nlayers',    default=2,     type=int, help='number of layers')
+parser.add_argument('--nlayers',    default=4,     type=int, help='number of layers')
 parser.add_argument('--filter_size',default=5,     type=int, help='filter size')
 parser.add_argument('--use_ce',     default='True',type=str, help='')
 parser.add_argument('--use_att',    default='True',type=str, help='')

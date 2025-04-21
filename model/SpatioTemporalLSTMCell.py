@@ -42,18 +42,18 @@ class SpatioTemporalLSTMCell(nn.Module):
             )
         self.conv_last = nn.Conv2d(num_hidden * 2, num_hidden, kernel_size=1, stride=1, padding=0, bias=False)
 
-        # self.dropout_x = nn.Dropout(0.3)
-        # self.dropout_h = nn.Dropout(0.3)
-        # self.dropout_m = nn.Dropout(0.3)
+        self.dropout_x = nn.Dropout(0.3)
+        self.dropout_h = nn.Dropout(0.3)
+        self.dropout_m = nn.Dropout(0.3)
 
     def forward(self, x_t, h_t, c_t, m_t):
         x_concat = self.conv_x(x_t)
         h_concat = self.conv_h(h_t)
         m_concat = self.conv_m(m_t)
 
-        # x_concat = self.dropout_x(x_concat)
-        # h_concat = self.dropout_h(h_concat)
-        # m_concat = self.dropout_m(m_concat)
+        x_concat = self.dropout_x(x_concat)
+        h_concat = self.dropout_h(h_concat)
+        m_concat = self.dropout_m(m_concat)
 
         i_x, f_x, g_x, i_x_prime, f_x_prime, g_x_prime, o_x = torch.split(x_concat, self.num_hidden, dim=1)
         i_h, f_h, g_h, o_h = torch.split(h_concat, self.num_hidden, dim=1)
