@@ -8,7 +8,7 @@ from collections import OrderedDict
 from utils.data_loading import TrainDataset
 from utils.future_land import *
 from utils.trainers.tester import *
-from model.CCLSTM import CCLSTM
+from model.CNN_LSTM import CNN_LSTM
 
 def check_args(args):
 
@@ -43,6 +43,8 @@ parser.add_argument('--fore_len',   default=6,    type=int)
 parser.add_argument('--height',     default=64,   type=int)
 parser.add_argument('--block_step', default=38,   type=int)
 parser.add_argument('--edge_width', default=4,   type=int)
+# model struct
+parser.add_argument('--nlayers',    default=2,     type=int, help='number of layers')
 # data information
 parser.add_argument('--spa_vars',   default='Dcity|DCounty|Dhigh|DPrimary|DSecondary|DTertiary|dem|gdp|pop|slope|water', type=str)
 parser.add_argument('--region',     default='hzb',          type=str)
@@ -83,16 +85,11 @@ if args.run_model:
     
     model_weights = torch.load(args.model_path, map_location='cpu').state_dict()
     new_weights = migrate_model(model_weights)
-    model = CCLSTM(input_chans=args.band,
-                    output_chans=1,
-                    img_size=args.height,
-                    filter_size=5,
-                    num_layers=2,
-                    hidden_size=64,
-                    enc_len=args.enc_len,
-                    fore_len=args.fore_len,
-                    use_ce=args.use_ce,
-                    use_attention=args.use_att)
+    model = CNN_LSTM(enc_len      = args.enc_len,
+                     fore_len     = args.fore_len,
+                     input_size   = (args.height, args.height),
+                     hidden_dim   = args.height,
+                     num_layers   = args.nlayers)
     model.load_state_dict(new_weights)
     model.cuda()
     
