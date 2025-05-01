@@ -1,6 +1,6 @@
 import os, sys
 from config import *
-from model.CCLSTM import CCLSTM
+from model.CNN_LSTM import CNN_LSTM
 from utils.data_loading import TrainDataset
 from utils.trainers.trainer import Trainer
 import argparse
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # img info
     parser.add_argument('--height',     default=64,   type=int, help='raster tile size')
     parser.add_argument('--spa_vars',   default='Dcity|DCounty|Dhigh|DPrimary|DSecondary|DTertiary|dem|gdp|pop|slope|water', type=str, help='spatial variables, split by "|"')
-    parser.add_argument('--block_dir',  default='/root/autodl-tmp/hzb/block64_64', type=str, help='raster tile dir root')
+    parser.add_argument('--block_dir',  default=r'/root/autodl-tmp/hzb/block64_64', type=str, help='raster tile dir root')
     # model struct
     parser.add_argument('--nlayers',    default=2,     type=int, help='number of layers')
     parser.add_argument('--filter_size',default=5,     type=int, help='filter size')
@@ -50,16 +50,12 @@ if __name__ == '__main__':
     args = check_args(args)
     print(args.spa_vars)
 
-    model = CCLSTM(input_chans  = args.band,
-                    output_chans = 1,
-                    hidden_size  = args.height,
-                    filter_size  = args.filter_size,
-                    num_layers   = args.nlayers,
-                    img_size     = args.height,
-                    enc_len      = args.enc_len,
-                    fore_len     = args.fore_len,
-                    use_attention= args.use_att,
-                    use_ce       = args.use_ce)
+    model = CNN_LSTM(enc_len         = args.enc_len,
+                     fore_len        = args.fore_len,
+                     s_channels      = len(args.spa_var_tifs),
+                     img_height      = args.height,
+                     img_width       = args.height,
+                     hidden_dim      = args.height)
     model = model.cuda()
     dataset = TrainDataset(args.block_dir,
                         args.input_tifs,
