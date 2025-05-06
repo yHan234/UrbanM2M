@@ -28,12 +28,21 @@ class PredRNN(nn.Module):
         cell_list = []
 
         self.cbam = CBAM(in_channels)
-        self.embed = nn.Conv2d(in_channels, hidden_size, 1, 1, 0)
+
+        padding = int((filter_size - 1) / 2)
+        self.emb_x = nn.Sequential(
+            nn.Conv2d(in_channels, hidden_size, filter_size, 1, padding, bias=False),
+            nn.LayerNorm([hidden_size, img_width, img_width]),
+        )
+        self.emb_h = nn.Sequential(
+            nn.Conv2d(hidden_size, in_channels, filter_size, 1, padding, bias=False),
+            nn.LayerNorm([in_channels, img_width, img_width]),
+        )
 
         for i in range(num_layers):
             cell_list.append(
                 SpatioTemporalLSTMCell(
-                    hidden_size,
+                    hidden_size if i != 0 else in_channels,
                     hidden_size,
                     img_width,
                     filter_size,
@@ -51,6 +60,11 @@ class PredRNN(nn.Module):
             bias=False,
         )
         self.sigmoid = nn.Sigmoid()
+
+    def embed(self, x, h):
+        x = self.sigmoid(self.emb_h(h)) * 2 * x
+        h = self.sigmoid(self.emb_x(x)) * 2 * h
+        return x, h
 
     def forward(self, x, s, mask_true):
         # mask_true: [length, channel, height, width]
@@ -85,7 +99,7 @@ class PredRNN(nn.Module):
                 net = mask * frames[:, t] + (1 - mask) * x_gen
 
             net = self.cbam(net)
-            net = self.embed(net)
+            net, h_t[0] = self.embed(net, h_t[0])
 
             h_t[0], c_t[0], memory = self.cell_list[0](net, h_t[0], c_t[0], memory)
 
